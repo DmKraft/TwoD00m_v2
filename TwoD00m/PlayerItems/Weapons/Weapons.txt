@@ -1,0 +1,3 @@
+﻿1 2 RangeWeapon Blin
+1 1 MeleeWeapon Blin
+2 2 MeleeWeapon Blin

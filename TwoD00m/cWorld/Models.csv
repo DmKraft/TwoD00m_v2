@@ -1,0 +1,34 @@
+[
+	{
+		Id:"flrgrvl"
+		Name:"floor gravel"
+		ModelPath:"BasisModel/FLOOR_GRAVEL"
+		IsSameSide:true
+		IsPassThrough:true
+		IsViewThrough:true
+	}
+	{
+		Id:"flrwdn"
+		Name:"floor wooden"
+		ModelPath:"BasisModel/FLOOR_PARQUET"
+		IsSameSide:true
+		IsPassThrough:true
+		IsViewThrough:true
+	}
+	{
+		Id:"wllstn"
+		Name:"wall stone"
+		ModelPath:"BasisModel/WALL_STONE"
+		IsSameSide:true
+		IsPassThrough:false
+		IsViewThrough:false
+	}
+	{
+		Id:"wllwdn"
+		Name:"wall wooden"
+		ModelPath:"BasisModel/WALL_WOODEN"
+		IsSameSide:true
+		IsPassThrough:false
+		IsViewThrough:false
+	}
+]
