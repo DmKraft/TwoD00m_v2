@@ -1,40 +1,50 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using TwoD00m.PlayerItems.Arsenal;
+using TwoD00m.PlayerItems.Potions;
 using System.Linq;
 using TwoD00m.Drawble;
 
 namespace TwoD00m.cWorld
 {
-    public class GameModel
+    public class Subject
     {
         private ModelTexture texture;
         public string AbbName { get; }
         public BlockType Type { get; }
-        
-        public GameModel(List<string> modelInfo)
+
+        public Subject(List<string> modelInfo)
         {
-            AbbName = Loader.GetStringParameter(modelInfo, "Id");
-            string path = Loader.GetStringParameter(modelInfo, "ModelPath");
-            bool isSameSide = Loader.GetBooleanParameter(modelInfo, "IsSameSide");
+            AbbName = modelInfo.GetStringParameter("Id");
+            string path = modelInfo.GetStringParameter("ModelPath");
+            bool isSameSide = modelInfo.GetBooleanParameter("IsSameSide");
             texture = new ModelTexture(path, isSameSide);
-            bool isPassThrough = Loader.GetBooleanParameter(modelInfo, "IsViewThrough");
-            bool isViewThrough = Loader.GetBooleanParameter(modelInfo, "IsPassThrough");
+            bool isPassThrough = modelInfo.GetBooleanParameter("IsViewThrough");
+            bool isViewThrough = modelInfo.GetBooleanParameter("IsPassThrough");
             Type = new BlockType(isPassThrough, isViewThrough);
         }
-        public GameModel(string path)
+        public Subject(string path)
         {
             texture = new ModelTexture(path, false);
         }
 
-        public GameModel() { }
-        
+        public Subject() { }
+
+        public override string ToString()
+        {
+            return AbbName;
+        }
+
         public void Draw(int x, int y, Direction playerDirection, Direction modelDirection)
         {
             Sprites.DrawBlock(texture.GetTexture(playerDirection, modelDirection), x, y);
         }
-        
-        public class ModelTexture {
+
+        public virtual void Use() { }
+
+        public class ModelTexture
+        {
             public List<Texture2D> sides = new List<Texture2D>();
 
             public ModelTexture(string path, bool isSameSide)
@@ -54,13 +64,35 @@ namespace TwoD00m.cWorld
 
             public Texture2D GetTexture(Direction playerDirection, Direction modelDirection)
             {
-                if(sides.Count == 1)
+                if (sides.Count == 1)
                 {
                     return sides[0];
-                } else
-                {
-                    return sides[Direction.GetDifference(playerDirection, modelDirection)];
                 }
+                else
+                {
+                    return sides[Direction.GetSideDifference(playerDirection, modelDirection)];
+                }
+            }
+        }
+    }
+
+    public class Chest : Subject
+    {
+        bool open;
+        Weapon innerweapon;
+        Potion innerpotion;
+        public Chest(List<string> modelInfo) : base(modelInfo)
+        {
+            open = false;
+            innerweapon = GameItems.findweapon(modelInfo.GetStringParameter("Weapon"));
+        }
+
+        public override void Use()
+        {
+            if (!open)
+            {
+                Inventory.weapons.Add(innerweapon);
+                open = true;
             }
         }
     }

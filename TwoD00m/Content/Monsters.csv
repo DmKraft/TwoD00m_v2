@@ -1,0 +1,15 @@
+[
+	{
+	Type: Zombie
+	Specialization: Fire
+	Position: 1,1
+	Direction: 3
+	HP.Max: 100
+	HP.Actual: 30
+	Damage: 30
+	Specialization: none
+	ModelPath: "Monsters/Monster1"
+	Life Way: 4,12
+	Life Way: 0,0
+	}
+]

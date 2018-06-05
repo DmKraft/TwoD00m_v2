@@ -6,108 +6,106 @@ using System.Collections;
 using TwoD00m.PlayerItems.Potions;
 using TwoD00m.PlayerItems.Arsenal;
 using TwoD00m.Interface;
+using TwoD00m.cWorld;
 
 namespace TwoD00m
 {
     public class Hero : Creature
     {
         public SurvivalPoint AP;
-        public bool madeTurn = true;
-        Potion p;
-        Weapon leftHand;
-        Weapon rightHand;
-        private int straterPotionNum = 0;
-        private int starterWeaponNum = 0;
-
-        public int currentPotionNum;
-        public int currentWeaponNum;
-        public int currentWeaponInLeftHand;
-        public int currentWeaponInRightHand;
-        static Weapon HeroWeapon;
-
-
         public Inventory inventory = new Inventory();
-        
-        GameGUI gameGui;
 
+        public bool inventoryOpen = false; // вряд ли это должно быть тут
+
+        private Weapon PoketWeaponFirst;
+        private Weapon PoketWeaponSecond;
+        private Potion PoketPotion;
+
+        public int SelectedPocket
+        {
+            get { return SelectedPocket; }
+            set
+            {
+                if (value < 0)
+                    { SelectedPocket = 0; }
+                else if (value > Inventory.weapons.Count)
+                    { SelectedPocket = Inventory.weapons.Count; }
+                else
+                    SelectedPocket = value ;
+            }
+        }
+        
         // private List<Creature> targets = new List<Creature>();
         public Hero()
         {
-            HP = new SurvivalPoint(50, 100);
+            place = new Place(new Point(4, 8), Direction.South);
+            HP = new SurvivalPoint(100, 100);
             AP = new SurvivalPoint(25, 100);
             
             inventory.StartInventory();
-            HeroWeapon =inventory.AvailableWeapon();
-            position = new Point(4, 4);
-            direction = Direction.North;
-            p = inventory.GetPotion(straterPotionNum);
-            leftHand = inventory.GetWeapon(starterWeaponNum);
-            rightHand = inventory.GetWeapon(starterWeaponNum);
-            setAlpha();
+            PoketPotion = inventory.GetPotion(0);
+            PoketWeaponFirst = inventory.GetWeapon(0);
+            PoketWeaponSecond = inventory.GetWeapon(0);
+        }
+                
+        public void GetLeftElement()
+        {
+            this.SelectedPocket = - 1;
+            this.inventory.GetWeapon(SelectedPocket);
+        }
 
-          //  gameGui = new GameGUI(this);
+        public void GetRightElement()
+        {
+            this.SelectedPocket =+ 1;
+            this.inventory.GetWeapon(SelectedPocket);
         }
 
         public void setPotion()
         {
             int zaglushka = 5;
-            this.p = inventory.GetPotion(zaglushka);
+            this.PoketPotion = inventory.GetPotion(zaglushka);
         }
 
         public void setLeftHandWeapon()
         {
             int zaglushka = 5;
-            this.leftHand = inventory.GetWeapon(zaglushka);
+            PoketWeaponFirst = inventory.GetWeapon(zaglushka);
         }
 
         public void setRightHandWeapon()
         {
             int zaglushka = 6;
-            this.leftHand = inventory.GetWeapon(zaglushka);
+            PoketWeaponFirst = inventory.GetWeapon(zaglushka);
         }
 
-        public void setAlpha()
+        public void LeftMove(World map)
         {
-            alpha.Y = (int)Math.Sin(direction.getRadianAngleDirection());
-            alpha.X = (int)Math.Cos(direction.getRadianAngleDirection());
+            Move(map, Direction.GetLeftDirection(Direction));
+        }
+
+        public void RightMove(World map)
+        {
+            Move(map, Direction.GetRightDirection(Direction));
+        }
+
+        public void BackwardMove(World map)
+        {
+            Move(map, Direction.GetBackDirection(Direction));
+        }
+
+        public void ForwardMove(World map)
+        {
+            Move(map, Direction);
         }
         
-        public void leftMove(World map)
+        public void LeftTurn()
         {
-            movements(map, Direction.getLeftDirection(direction));
-            setAlpha();
+            place.SetLeftDirection();
         }
 
-        public void rightMove(World map)
+        public void RightTurn()
         {
-            movements(map, Direction.getRightDirection(direction));
-            setAlpha();
-        }
-
-        public void backwardMove(World map)
-        {
-            HP.Actual -= 3f;
-            movements(map, Direction.getBackDirection(direction));
-            setAlpha();
-        }
-
-        public void forwardMove(World map)
-        {
-            HP.Actual += 3f;
-            movements(map, direction);
-            setAlpha();
-        }
-        
-        public void leftTurn()
-        {
-            direction = Direction.getLeftDirection(direction);
-            setAlpha();
-        }
-
-        public void rightTurn()
-        {
-            direction = Direction.getRightDirection(direction);
-            setAlpha();
+            place.SetRightDirection();
         }
 
         public void UsePotion(int num)    //функция получения целей необходима
@@ -116,41 +114,48 @@ namespace TwoD00m
             string name = p.name.ToLower();
             if (name.Contains("heal"))
                 p.Use(this);
-            if (name.Contains("poison"))
+            if (name.Contains("poison")) // полиморфизм нужен, а не это
                 p.Use(this);
+        }
+        public void Use(World map)
+        {
+            Point point = Position;           
+            point.Y -= Direction.Alpha.Y;
+            point.X += Direction.Alpha.X;
+            map.GetBlock(point).Use();
         }
 
         public void UsePotion()
         {
-            string name = p.name.ToLower();
+            string name = PoketPotion.name.ToLower();
             if (name.Contains("heal"))
-                this.p.Use(this);
+                this.PoketPotion.Use(this);
             if (name.Contains("poison"))
-                this.p.Use(this);
-            inventory.potions.RemoveAt(inventory.potions.IndexOf(p));
+                this.PoketPotion.Use(this);
+            inventory.potions.RemoveAt(inventory.potions.IndexOf(PoketPotion));
         }
 
         public void impact(Dictionary<Point, Monster> monstersList, World map)
         {
-            List<Point> AvailablePoint = HeroWeapon.Search(position, direction, map);
+            List<Point> AvailablePoint = PoketWeaponFirst.Search(Position, Direction, map);
             foreach (Point point in AvailablePoint)
             {
                 if (monstersList.ContainsKey(point))                                    
-                HeroWeapon.Attack(monstersList[point]);
+                PoketWeaponFirst.Attack(monstersList[point]);
             }
         }
 
         public void ShowHidePayerHUD()
         {
-          //  gameGui.GetPlayerHUD().InvertVisible();
+            GameGUI.GetPlayerHUD().InvertVisible();
         }
         public void UpdateGUI()
         {
-            //gameGui.update();
+            GameGUI.Update();
         }
         public void DrawGUI()
         {
-            //gameGui.DrawGUI();
+            GameGUI.Draw();
         }
         
     }

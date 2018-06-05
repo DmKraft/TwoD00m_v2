@@ -23,10 +23,10 @@ namespace TwoD00m.PlayerItems.Potions
             foreach (var creature in creatures)
                 creature.Buff(effect);
         }
-        public Potion(IEffect _effect, string _name)
+        public Potion(List<string> potioninfo, IEffect _effect)
         {
             effect = _effect;
-            name = _name;
+            name = potioninfo.GetStringParameter("Name");
         }
         public Potion()
         {

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using TwoD00m.cWorld;
 using TwoD00m.PlayerItems.Potions;
-using Microsoft.Xna.Framework.Graphics;
+//using Microsoft.Xna.Framework.Graphics;
 using TwoD00m.Drawble;
 
 namespace TwoD00m
@@ -11,59 +11,58 @@ namespace TwoD00m
     public abstract class Creature
     {
         public SurvivalPoint HP;
-        public int damage { get; set; }
-        public int realDamage { get; set; }
-        public int range { get; set; }
-        public Point position;
-        public Point alpha;
-        public static Random rand = new Random();
-        public Direction direction;
-        private int rangeOfViewX = 3, rangeOfViewY = 3;
+        protected Place place;
+        public Point Position { get { return place.Position; } }
+        public Direction Direction { get { return place.Direction; } }
+        public float Damage { get; set; }
+        public float RealDamage { get; set; }
+        public static Random rand = new Random(); // что это?
+
         private List<IEffect> buffs = new List<IEffect>();
 
-        public void movements(World map, Direction direction)
+        public void Move(World map, Direction direction)
         {
-            map.WorldUpdate(position);
-            alpha.Y = (int)Math.Sin(direction.GetCode() * Math.PI / 2);
-            alpha.X = (int)Math.Cos(direction.GetCode() * Math.PI / 2);
-
-            if (map.getBlock(getAheadPosition()) != null)
-                if (map.getBlock(getAheadPosition()).IsPassThrough)
+            Point nextPosition = place.GetAheadPosition(direction);
+            if (map.GetBlock(nextPosition) != null)
+            {
+                if (map.GetBlock(nextPosition).IsPassThrough)
                 {
-                    position.Y -= alpha.Y;
-                    position.X += alpha.X;
-                    map.WorldUpdate(position);
+                    map.WorldUpdate(Position);
+                    place.Position = nextPosition;
+                    map.WorldUpdate(Position);
                 }
+            }
         }
-        public Point getAheadPosition()
+        public static Dictionary<Point, Monster> ToDictionary(List<Monster> monsters)
         {
-            return new Point(position.X + alpha.X, position.Y - alpha.Y);
+            Dictionary<Point, Monster> monsterList = new Dictionary<Point, Monster>();
+            foreach (var monster in monsters)
+                monsterList.Add(monster.Position, monster);
+            return monsterList;
         }
-        
-
         public Point[] GetScope(World map, int rangeOfVievFront, int rangeOfVievSides)
         {
             int scopeSqure = (rangeOfVievFront + 1) * (rangeOfVievSides * 2 + 1);
             int pos1, pos2, i = 0;
-            if (Math.Abs(this.alpha.Y) == 1)
+            if (Math.Abs(Direction.Alpha.Y) == 1)
             {
-                pos1 = this.position.Y;
-                pos2 = this.position.X;
+                pos1 = Position.Y;
+                pos2 = Position.X;
             }
             else
             {
-                pos1 = this.position.X;
-                pos2 = this.position.Y;
+                pos1 = Position.X;
+                pos2 = Position.Y;
             }
             Point[] order = new Point[scopeSqure];
-            int pn1 = this.alpha.Y - this.alpha.X;
-            int pn2 = this.alpha.Y + this.alpha.X;
+            int pn1 = place.Direction.Alpha.Y - place.Direction.Alpha.X;
+            int pn2 = place.Direction.Alpha.Y + place.Direction.Alpha.X;
 
             for (int p1 = pos1 - rangeOfVievFront * pn1, pt1 = 0; pt1 <= rangeOfVievFront; p1 += pn1, pt1++)
             {
                 for (int p2 = pos2 - rangeOfVievSides * pn2, pt2 = 0; pt2 <= rangeOfVievSides * 2; p2 += pn2, pt2++)
                 {
-                    if (Math.Abs(this.alpha.Y) == 1)
+                    if (Math.Abs(Direction.Alpha.Y) == 1)
                         order[i++] = new Point(p2, p1);
                     else
                         order[i++] = new Point(p1, p2);
@@ -72,21 +71,30 @@ namespace TwoD00m
             return order;
         }
 
-        public void TakeHeal(int healPoint)
+        public List<Block> GetScope(Point[] scopeMap, World map)
+        {
+            List<Block> scope = new List<Block>();
+            foreach (var point in scopeMap)
+            {
+                scope.Add(map.GetBlock(point.X, point.Y));
+            }
+            return scope;
+        }
+
+        public void TakeHeal(float healPoint)
         {
             if (healPoint > 200)
                 HP.Actual += 10;
             else HP.Actual += healPoint;
         }
 
-        public void TakeDamage(int damagePoint)
+        public void TakeDamage(float damagePoint)
         {
-            if (damagePoint > 200)
-                HP.Actual -= 10;
-            else HP.Actual -= damagePoint;
+            HP.Actual -= damagePoint;
         }
         public void Buff(IEffect effect) //все ради инкапсуляции
         {
+            if(!AlreadyBuffed(effect))
             buffs.Add(effect);
         }
 
@@ -96,6 +104,12 @@ namespace TwoD00m
             {
                 effect.Act();
             }
+        }
+        public bool AlreadyBuffed(IEffect effect)
+        {
+            if (buffs.Contains(effect))
+                return true;
+            else return false;
         }
         public void StopEffects()
         {
@@ -115,239 +129,110 @@ namespace TwoD00m
 
     public class Monster : Creature
     {
-        public List<Point> homeWay = new List<Point>();
-        public string type { get; set; }
-        public string specialization { get; set; }
-        public bool aggred { get; set; }
+        protected AI ai = null;
+        public List<Point> lifeWay = new List<Point>();
+        public string Type { get; set; } = "None";
+        public Specialization Specialization { get; private set; }
+        public bool Aggred { get; set; }
         public Point targetPosition = new Point();
-        private static int rangeOfVievFront = 3, rangeOfVievSides = 1;
-        //int[,] rangeOfView = new int[rangeOfVievFront, rangeOfVievSides*2+1];
-        private bool heroFound = false;
-        public RangeOfViewMap rangeOfView = new RangeOfViewMap(rangeOfVievFront, rangeOfVievSides);
+        public int rangeOfViewFront { get; protected set; } = 3;
+        public int rangeOfViewSides { get; protected set; } = 1;
+        public bool heroFound { get; set; } = false;
+        public RangeOfViewMap rangeOfView = null;
+        protected Subject model;
 
-        private GameModel model;
-
-        public void movements(World map)
+        public Monster(List<string> monsterInfo/*, List<AI> aiList*/)
         {
-            if (position.X == targetPosition.X && position.Y == targetPosition.Y)
-            {
-                TargetUpdate();
-                return;
-            }
-            bool trueDirection = false;
-            while (!trueDirection)
-            {
-                alpha.Y = (int)Math.Sin(direction.GetCode() * Math.PI / 2);
-                alpha.X = (int)Math.Cos(direction.GetCode() * Math.PI / 2);
-                if (rangeOfView.wayToTarget.Count == 0)
-                {
-                    return;
-                }
-                if (!(position.X + alpha.X == rangeOfView.wayToTarget[0].X && position.Y - alpha.Y == rangeOfView.wayToTarget[0].Y))
-                   direction = Direction.getRightDirection(direction);
-                else trueDirection = true;
-            }
-            movements(map, direction);
-            rangeOfView.wayToTarget.RemoveAt(0);
-        }
-
-
-        public Monster(string[] param)
-        {
+            if (ai == null)
+            ai = new AI();
+            Damage = monsterInfo.GetFloatParameter("Damage");
             int j = 0;
-            position.X = int.Parse(param[j++]);
-            position.Y = int.Parse(param[j++]);
-            HP = new SurvivalPoint();
-            HP.Actual = SetRandomedDamage(int.Parse(param[j++]));
-            damage = SetRandomedDamage(int.Parse(param[j++]));
-            range = int.Parse(param[j++]);
-            type = param[j++];
-            specialization = param[j++];
-            aggred = Convert.ToBoolean(int.Parse(param[j++]));
-            direction = Direction.Code(int.Parse(param[j++]));
-            model = new GameModel("Monsters/Monster1");
-            homeWay.Add(new Point(4, 12));
-            homeWay.Add(position);
-
-            if (specialization != "none")
+            place = new Place(monsterInfo.GetPointParameter("Position"), Direction.AbbToDirection(monsterInfo.GetStringParameter("Direction")));
+            HP = new SurvivalPoint(monsterInfo.GetFloatParameter("HP.Actual"), monsterInfo.GetFloatParameter("HP.Max"));
+            Specialization = Specialization.GetSpecialization(monsterInfo.GetStringParameter("Specialization"));
+            Aggred = false;
+            model = new Subject(monsterInfo.GetStringParameter("ModelPath"));
+            foreach(var line in monsterInfo)
             {
-                buffAccordindOnSpecialization();
-            }
-        }
-
-        public Monster() {
-            HP = new SurvivalPoint();
-        }
-
-
-        int SetRandomedHp(int HealthPoints)
-        {
-            int hpChangeRange = 10;
-            int hpChangeForSpecialMonsters = 5;
-
-            if (this.type == "orc" || this.type == "deadman")
-            {
-                hpChangeRange = +hpChangeForSpecialMonsters;
-            }
-
-            return rand.Next(HealthPoints - hpChangeRange, HealthPoints + hpChangeRange);
-        }
-
-        int SetRandomedDamage(int damage)
-        {
-            int damageChangeRange = 5;
-            return this.damage = rand.Next(damage - damageChangeRange, damage + damageChangeRange);
-        }
-
-        void buffAccordindOnSpecialization()
-        {
-            /*switch (this.specialization)
-            {
-                case (Specialization)0: //Fire
-                    this.HealthPoints = +10;
-                    this.damage = +15;
-                    break;
-
-                case (Specialization)1: //Poison
-                    this.HealthPoints = +15;
-                    this.damage = +10;
-                    break;
-                case (Specialization)2: //Electicity
-                    this.HealthPoints = +10;
-                    this.damage = +10;
-                    break;
-            }*/
-        }
-
-        public void ScanAreNear(World map, Hero hero)
-        {
-            if (targetPosition.X == hero.position.X && targetPosition.Y == hero.position.Y)//если игрок не переместился, не ищем новый путь до него
-                return;
-            if (targetPosition.X == homeWay[0].X && targetPosition.Y == homeWay[0].Y)
-                return;
-            heroFound = false;
-            //Дальше идет проверка видимости игрока мобом
-            int scopeSqure = rangeOfVievFront * (rangeOfVievSides * 2 + 1);
-            this.alpha.Y = (int)Math.Sin(direction.GetCode() * Math.PI / 2);
-            this.alpha.X = (int)Math.Cos(direction.GetCode() * Math.PI / 2);
-
-            List<Block> scope = new List<Block>();
-            Point[] scopeCoords = GetScope(map, rangeOfVievFront, rangeOfVievSides);
-            foreach (var point in scopeCoords)
-            {
-                scope.Add(map.getBlock(point.X, point.Y));
-            }
-
-            SearchHero(hero, scopeCoords, scope);   //проверка видит ли монстр игрока
-            if (!heroFound) targetPosition = homeWay[0];
-            //дальше идет поиск кротчайшего пути, если игрок был найден
-
-                if (AI.StartWave(map, this) == true)
+                if(line.Contains("Life Way"))
                 {
-                    AI.RestorePath(this);
-                    aggred = true;
-                }
-        }
-
-        public bool Attack(Hero hero)
-        {
-            if (position.X + alpha.X != hero.position.X || position.Y + alpha.Y != hero.position.Y)
-                return false;
-            //if(specialization!= null)
-            //hero.Buf(specialization.baf)
-            hero.TakeDamage(damage);
-            return true;
-        }
-
-        public void SearchHero(Hero hero, Point[] scopeMap, List<Block> scope)
-        {
-            for (int i = 0; i < scope.Count; i++)
-            {
-                if (scope[i] != null)
-                {
-                    if (hero.position.X == scopeMap[i].X && hero.position.Y == scopeMap[i].Y)
-                    {
-                        if (i < 6)
-                        {
-                            switch (i % 3)
-                            {
-                                case 0:
-                                    if (SearchLeftAndCenter(scope, scopeMap, i))
-                                        return;
-                                    break;
-                                case 1:
-                                    if (SearchCenter(scope, scopeMap, i))
-                                        return;
-                                    break;
-                                case 2:
-                                    if (SearchRightAndCenter(scope, scopeMap, i))
-                                        return;
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            this.heroFound = true;
-                            targetPosition = scopeMap[i];
-                            return;
-                        }
-                    }
+                    lifeWay.Add(monsterInfo.GetPointParameter(line));
                 }
             }
+            if (lifeWay.Count != 0)
+                targetPosition = lifeWay[0];
+            else targetPosition = Position;
+            rangeOfView = new RangeOfViewMap(rangeOfViewFront, rangeOfViewSides);
+            if (Type == "None")
+                Type = "Petya";
         }
 
-        private bool SearchRightAndCenter(List<Block> scope, Point[] scopeMap, int heroPosition)
+        public Monster()
         {
-            if (TrySearch(scope, heroPosition, 1))
-            {
-                this.heroFound = true;
-                targetPosition = scopeMap[heroPosition];
-                return true;
-            }
-            else return false;
+            HP = new SurvivalPoint();
         }
-        private bool SearchCenter(List<Block> scope, Point[] scopeMap, int heroPosition)
+        public void MakeAMove(World map, Hero hero, Dictionary<Point, Monster> monstersList)
         {
-            if (TrySearch(scope, heroPosition, 0))
+            if (!ai.Attack(this, hero))
             {
-                this.heroFound = true;
-                targetPosition = scopeMap[heroPosition];
-                return true;
+                ai.FindTarget(this, map, hero, monstersList);
+                ai.movements(this, map);
             }
-            else return false;
-        }
-        private bool SearchLeftAndCenter(List<Block> scope, Point[] scopeMap, int heroPosition)
-        {
-            if (TrySearch(scope, heroPosition, -1))
-            {
-                this.heroFound = true;
-                targetPosition = scopeMap[heroPosition];
-                return true;
-            }
-            else return false;
-        }
-
-        private bool TrySearch(List<Block> scope, int heroPosition, int offset)
-        {
-            for (int k = heroPosition; k < scope.Count; k += rangeOfVievSides*2+1)
-            {
-                if (!scope[k].IsViewThrough || !scope[k + offset].IsViewThrough)
-                    return false;
-            }
-            return true;
+            ai.SearchHero(this, map, hero);
+            if (heroFound)
+                Aggred = true;
         }
         public void TargetUpdate()
         {
-            aggred = false;
-            Point swapBuffer = homeWay[0];
-            homeWay.RemoveAt(0);
-            homeWay.Add(swapBuffer);
-            targetPosition = homeWay[0];
+            Aggred = false;
+            Point swapBuffer = lifeWay[0];
+            lifeWay.RemoveAt(0);
+            lifeWay.Add(swapBuffer);
+            targetPosition = lifeWay[0];
+        }
+        public bool SearchTrueDirection(Point targetPosition)
+        {
+            bool trueDirection = false;
+            int CountOfTries = 0;
+            while (!trueDirection)
+            {
+                if (!(place.GetAheadPosition().Equals(targetPosition)))
+                {
+                    place.Direction = Direction.GetRightDirection(Direction);
+                    CountOfTries++;
+                    if (CountOfTries > 3)
+                        return false;
+                }
+                else trueDirection = true;
+            }
+            return trueDirection;
+        }
+        void buffAccordindOnSpecialization()
+        {
+            Specialization.buff(this);
         }
 
         public void Draw(int x, int y, Direction playerDirection)
         {
-            model.Draw(x, y, playerDirection, direction);
+            model.Draw(x, y, playerDirection, Direction);
+        }
+    }
+
+    public class Sceleton : Monster
+    {
+        public Sceleton(List<string> monsterInfo) : base(monsterInfo)
+        {
+            Type = monsterInfo.GetStringParameter("Type");
+        }
+    }
+    public class Zombie : Monster
+    {
+        public Zombie(List<string> monsterInfo) : base(monsterInfo)
+        {
+            rangeOfViewFront = 1;
+            rangeOfViewSides = 0;
+            ai = new AIz();
+            Type = monsterInfo.GetStringParameter("Type");
         }
     }
 
@@ -365,7 +250,8 @@ namespace TwoD00m
                         actual = max;
                     else
                         actual = value;
-                } else 
+                }
+                else
                     actual = 0;
             }
         }
@@ -386,5 +272,37 @@ namespace TwoD00m
         }
 
         public SurvivalPoint() { }
+    }
+
+    public class Place
+    {
+        public Point Position { get; set; }
+        public Direction Direction { get; set; }
+
+        public Place() { }
+        public Place(Point position, Direction direction) {
+            Position = position;
+            Direction = direction;
+        }
+
+        public Point GetAheadPosition()
+        {
+            return new Point(Position.X + Direction.Alpha.X, Position.Y - Direction.Alpha.Y);
+        }
+
+        public Point GetAheadPosition(Direction direction)
+        {
+            return new Point(Position.X + direction.Alpha.X, Position.Y - direction.Alpha.Y);
+        }
+
+        public void SetRightDirection()
+        {
+            Direction = Direction.GetRightDirection(Direction);
+        }
+
+        public void SetLeftDirection()
+        {
+            Direction = Direction.GetLeftDirection(Direction);
+        }
     }
 }

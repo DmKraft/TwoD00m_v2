@@ -7,50 +7,57 @@ using System.Threading.Tasks;
 
 namespace TwoD00m.PlayerItems.Arsenal
 {
-    public partial class Weapon
+    public class Weapon
     {
-        private float damage { get; }
-        private float durability { get; set; }     
-                
-        private float rareness;        
-        private string name;
-        private string description;
-       
+        private float Damage { get; }
+        private float Durability { get; set; }
+        private string Name { get; }
+        private string Description { get; }
 
-        Dictionary<string, TableEfficiency> efficiency = new Dictionary<string, TableEfficiency>();
-        
 
-        public Weapon(float damage, float durability,  string name)
+        Dictionary<string, TableEfficiency> Efficiency = new Dictionary<string, TableEfficiency>();
+
+        public Weapon() { }
+        public Weapon(List<string> weaponinfo)
         {
-            this.damage = damage;
-            this.name = name;
-            this.durability = durability;
-            
-                
+
             TableEfficiency zombie = new TableEfficiency();
-            zombie.damageСoef = 1;
-            zombie.durabilityСoef = 0.5F;
-            efficiency.Add("zombie", zombie);
+            zombie.damageСoefficient = 1;
+            zombie.durabilityСoefficient = 0.5F;
+            Efficiency.Add("Zombie", zombie);
+            Efficiency.Add("Sceleton", zombie);
+            Efficiency.Add("Petya", zombie);
+
+            Damage = weaponinfo.GetFloatParameter("Damage");
+            Name = weaponinfo.GetStringParameter("Name");
+            Durability = weaponinfo.GetFloatParameter("Durability");
+            Description = weaponinfo.GetStringParameter("Description");
+
         }
-              
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
         public virtual List<Point> Search(Point position, Direction direction, World map)
         {
-            List<Point> AvailablePoint = new List<Point>();
-            return AvailablePoint;
+            List<Point> availablePoint = new List<Point>();
+            return availablePoint;
         }
         public class TableEfficiency
         {
-            public float damageСoef { get; set; }
-            public float durabilityСoef { get; set; }
+            public float damageСoefficient { get; set; }
+            public float durabilityСoefficient { get; set; }
         }
 
         public void Attack(Monster monster)
         {
 
-            TableEfficiency Efficiency = efficiency[monster.type];
-            monster.TakeDamage((int)(damage * Efficiency.damageСoef));
-            durability -= Efficiency.durabilityСoef;
-            if (durability <= 0)
+            TableEfficiency efficiency = Efficiency[monster.Type];
+            monster.TakeDamage(Damage * efficiency.damageСoefficient);
+            Durability -= efficiency.durabilityСoefficient;
+            if (Durability <= 0)
                 Inventory.WeaponDestoy(0);
 
         }
@@ -58,22 +65,16 @@ namespace TwoD00m.PlayerItems.Arsenal
 
         public class MeleeWeapon : Weapon
         {
-            public MeleeWeapon(float damage, float durability, string name):base(damage,durability,name)
-            {               
+            public MeleeWeapon(List<string> weaponinfo) : base(weaponinfo)
+            {
             }
-            public override List<Point> Search(Point position,Direction direction,World map)
+            public override List<Point> Search(Point position, Direction direction, World map)
             {
                 var AvailablePoint = new List<Point>();
-                Point alpha;
+                position.Y -= direction.Alpha.Y;
+                position.X += direction.Alpha.X;
 
-                alpha.Y = (int)Math.Sin(direction.GetCode() * Math.PI / 2);
-                alpha.X = (int)Math.Cos(direction.GetCode() * Math.PI / 2);
-
-                position.Y -= alpha.Y;
-                position.X += alpha.X;
-
-                if (map.getBlock(position) != null)
-                    if (map.getBlock(position).IsPassThrough)
+                if (map.GetBlock(position) != null)
                         AvailablePoint.Add(position);
                 return AvailablePoint;
             }
@@ -81,26 +82,22 @@ namespace TwoD00m.PlayerItems.Arsenal
         }
         public class RangeWeapon : Weapon
         {
-            public RangeWeapon(float damage, float durability,  string name):base(damage,durability,name)
+            public RangeWeapon(List<string> weaponinfo) : base(weaponinfo)
             {
             }
             public override List<Point> Search(Point position, Direction direction, World map)
             {
                 var AvailablePoint = new List<Point>();
-                Point alpha;
-
-                alpha.Y = (int)Math.Sin(direction.GetCode() * Math.PI / 2);
-                alpha.X = (int)Math.Cos(direction.GetCode() * Math.PI / 2);
                 for (int i = 1; i <= 3; i++)
                 {
-                    position.Y -= alpha.Y;
-                    position.X += alpha.X;
+                    position.Y -= direction.Alpha.Y;
+                    position.X += direction.Alpha.X;
 
-                    if (map.getBlock(position) != null)
+                    if (map.GetBlock(position) != null)
                     {
-                        if (map.getBlock(position).IsPassThrough)
-                            AvailablePoint.Add(position);
-                        else break;
+                        AvailablePoint.Add(position);
+                        if (!map.GetBlock(position).IsPassThrough)
+                            break;
                     }
                     else break;
                 }

@@ -65,6 +65,7 @@ namespace TwoD00m.Interface
         public PlayerShiftGUI(bool visible, Hero hero) : base(visible) {
             addElement( new HorizontalFillingScale("HEALTH_BAR", new Vector2(674, 637), ref hero.HP) );
             addElement( new HorizontalFillingScale("ARMOR_BAR", new Vector2(674, 673), ref hero.AP) );
+            //addElement();
         }
     }
 }

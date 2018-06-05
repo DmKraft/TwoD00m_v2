@@ -6,36 +6,33 @@ using System.Threading.Tasks;
 
 namespace TwoD00m.Interface
 {
-    public class GameGUI
+    public static class GameGUI
     {
-        private
-            List<GUI> playerGUI = new List<GUI>();
+        private static List<GUI> playerGUI = new List<GUI>();
 
-        public GameGUI(Hero hero) {
-
-            playerGUI.Add( new PlayerShiftGUI( true , hero) );
-
-            update();
-            
+        public static void SetUp(Hero hero)
+        {
+            playerGUI.Add(new PlayerShiftGUI(true, hero));
+            Update();
         }
 
-        public void DrawGUI()
+        public static void Draw()
         {
-            foreach(var pGui in playerGUI)
+            foreach (var pGui in playerGUI)
             {
                 pGui.draw();
             }
         }
 
-        public void update()
+        public static void Update()
         {
             foreach (var pGui in playerGUI)
             {
                 pGui.update();
             }
         }
-        
-        public PlayerShiftGUI GetPlayerHUD()
+
+        public static PlayerShiftGUI GetPlayerHUD()
         {
             foreach (var pGui in playerGUI)
             {
@@ -44,6 +41,5 @@ namespace TwoD00m.Interface
             }
             return null;
         }
-
     }
 }

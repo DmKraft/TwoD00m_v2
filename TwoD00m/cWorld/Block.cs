@@ -1,64 +1,91 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using TwoD00m.Drawble;
+using System;
 
 namespace TwoD00m.cWorld
 {
     public class Block
     {
-        private BlockType Type { get; set; }
+        private BlockType type;
+        private List<Subject> subjects = new List<Subject>();
+        private List<Direction> subjectsDirection = new List<Direction>();
         public bool IsPassThrough
         {
-            get { return Type.IsPassThrough; }
+            get { return type.IsPassThrough; }
         }
         public bool IsViewThrough
         {
-            get { return Type.IsViewThrough; }
+            get { return type.IsViewThrough; }
         }
-        private List<GameModel> models = new List<GameModel>();
-        private List<Direction> modelsDirection = new List<Direction>();
-        public bool Explored { get; set; }
-
-        public Block()
+        public bool Explored
         {
-            Type = new BlockType();
+            get;
+            set;
+        }
+        
+        public Block(string[] blockInfo)
+        {
+            type = new BlockType();
             Explored = false;
+            string[] modelsInfo = new string[blockInfo.Length - 2];
+            Array.Copy(blockInfo, 2, modelsInfo, 0, modelsInfo.Length);
+            for (int i = 0; i < modelsInfo.Length; i += 2)
+            {
+                Subject m = GameItems.subjects.GetObject(modelsInfo[i]);
+                Direction d = Direction.AbbToDirection(modelsInfo[i + 1]);
+                AddModel(ref m, d);
+            }
         }
 
-        public void AddModel(GameModel model, Direction direction)
+        public void AddModel(ref Subject model, Direction direction)
         {
-            models.Add(model);
-            modelsDirection.Add(direction);
+            subjects.Add(model);
+            subjectsDirection.Add(direction);
             ComputePassThrough();
             ComputeViewThrough();
         }
-        public virtual void Use() { }
+        public virtual void Use()
+        {
+            foreach (var obj in subjects)
+            {
+                obj.Use();
+            }
+        }
 
         public virtual void Stand() { }
 
         public void Draw(int x, int y, Direction playerDirection)
         {
-            foreach (var model in models)
-                model.Draw(x, y, playerDirection, modelsDirection[models.IndexOf(model)]);
+            foreach (var model in subjects)
+                model.Draw(x, y, playerDirection, subjectsDirection[subjects.IndexOf(model)]);
         }
 
         private void ComputePassThrough()
         {
-            Type = new BlockType(true, Type.IsViewThrough);
-            foreach (var model in models)
+            type = new BlockType(true, type.IsViewThrough);
+            foreach (var model in subjects)
             {
                 if (!model.Type.IsPassThrough)
-                    Type = new BlockType(false, Type.IsViewThrough);
+                    type = new BlockType(false, type.IsViewThrough);
             }
         }
         private void ComputeViewThrough()
         {
-            Type = new BlockType(Type.IsPassThrough, true);
-            foreach (var model in models)
+            type = new BlockType(type.IsPassThrough, true);
+            foreach (var model in subjects)
             {
                 if (!model.Type.IsViewThrough)
-                    Type = new BlockType(Type.IsPassThrough, false);
+                    type = new BlockType(type.IsPassThrough, false);
             }
+        }
+
+        public void InvertPassThrough()
+        {
+            if (type.IsPassThrough)
+                type = new BlockType(false, type.IsViewThrough);
+            else
+                type = new BlockType(true, type.IsViewThrough);
         }
     }
 }

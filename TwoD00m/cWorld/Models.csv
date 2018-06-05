@@ -2,7 +2,7 @@
 	{
 		Id:"flrgrvl"
 		Name:"floor gravel"
-		ModelPath:"BasisModel/FLOOR_GRAVEL"
+		ModelPath:"BasisModel/FLOOR_GRAVEL"		
 		IsSameSide:true
 		IsPassThrough:true
 		IsViewThrough:true
@@ -30,5 +30,15 @@
 		IsSameSide:true
 		IsPassThrough:false
 		IsViewThrough:false
+	}
+	{
+		Id:"flrgrv1"
+		Name:"floor gravel"
+		ModelPath:"BasisModel/WALL_WOODEN"
+		Weapon:"the bow of Hercules
+		Type:Chest
+		IsSameSide:true
+		IsPassThrough:true
+		IsViewThrough:true
 	}
 ]

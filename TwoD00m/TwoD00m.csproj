@@ -45,11 +45,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AI.cs" />
+    <Compile Include="MobSpecialization.cs" />
     <Compile Include="Control\Command.cs" />
-    <Compile Include="Common.cs" />
     <Compile Include="Creatures.cs" />
     <Compile Include="cWorld\Block.cs" />
-    <Compile Include="cWorld\Model.cs" />
+    <Compile Include="cWorld\Subject.cs" />
     <Compile Include="Directions.cs" />
     <Compile Include="Drawble\Drawing.cs" />
     <Compile Include="Drawble\Sprites.cs" />
@@ -67,8 +67,6 @@
     <Compile Include="cWorld\World.cs" />
     <Compile Include="Inventory.cs" />
     <Compile Include="PlayerItems\Potions\Potion.cs" />
-    <Compile Include="PlayerItems\Potions\PotionKit.cs" />
-    <Compile Include="PlayerItems\Potions\PotionActions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RangeOfViewMap.cs" />
@@ -84,13 +82,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Icon.ico" />
-    <Content Include="PlayerItems\Weapons\Weapons.txt" />
-    <Content Include="MonstersStats.txt" />
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <None Include="app.manifest" />
-    <None Include="cWorld\Models.csv" />
+    <None Include="cWorld\Subjects.csv" />
+    <None Include="PlayerItems\Weapons\Weapons.csv" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

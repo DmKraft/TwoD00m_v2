@@ -8,6 +8,16 @@ namespace TwoD00m
         public virtual void execute(Hero hero, World world, Dictionary <Point,Monster> monstersList) { }
     }
 
+    public class GetLeftElement : Command
+    {
+        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.GetLeftElement(); }
+    }
+
+    public class GetRightElement : Command
+    {
+        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.GetRightElement(); }
+    }
+
     public class SetPotion : Command
     {
         public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.setPotion(); }
@@ -30,32 +40,32 @@ namespace TwoD00m
 
     public class StepFront: Command
     {
-        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.forwardMove(world); EndTurn = true; }
+        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.ForwardMove(world); EndTurn = true; }
     }
 
     public class StepBack : Command
     {
-        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.backwardMove(world); EndTurn = true; }
+        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.BackwardMove(world); EndTurn = true; }
     }
 
     public class StepLeft : Command
     {
-        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.leftMove(world); EndTurn = true; }
+        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.LeftMove(world); EndTurn = true; }
     }
 
     public class StepRight : Command
     {
-        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.rightMove(world); EndTurn = true; }
+        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.RightMove(world); EndTurn = true; }
     }
 
     public class TurnLeft : Command
     {
-        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.leftTurn(); EndTurn = false; }
+        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.LeftTurn(); EndTurn = false; }
     }
 
     public class TurnRight : Command
     {
-        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.rightTurn(); EndTurn = false; }
+        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.RightTurn(); EndTurn = false; }
     }
     public class Attack : Command
     {
@@ -64,5 +74,9 @@ namespace TwoD00m
     public class PlayerHUD : Command
     {
         public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.ShowHidePayerHUD(); EndTurn = false; }
+    }
+    public class Use : Command
+    {
+        public override void execute(Hero hero, World world, Dictionary<Point, Monster> monstersList) { hero.Use(world); EndTurn = false; }
     }
 }

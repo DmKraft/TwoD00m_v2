@@ -12,6 +12,7 @@ namespace TwoD00m.Control
         
         public InputHandler()
         {
+            buttons.Add(new Button().setCommand<Use>().setKey(Keys.F));
             buttons.Add(new Button().setCommand<StepFront>().setKey(Keys.W));
             buttons.Add(new Button().setCommand<StepBack>().setKey(Keys.S));
             buttons.Add(new Button().setCommand<StepLeft>().setKey(Keys.A));
@@ -19,10 +20,7 @@ namespace TwoD00m.Control
             buttons.Add(new Button().setCommand<TurnLeft>().setKey(Keys.Q));
             buttons.Add(new Button().setCommand<TurnRight>().setKey(Keys.E));
             buttons.Add(new Button().setCommand<Attack>().setKey(Keys.Space));
-            buttons.Add(new Button().setCommand<UsePotion>().setKey(Keys.P));
-            buttons.Add(new Button().setCommand<SetPotion>().setKey(Keys.D3));
-            buttons.Add(new Button().setCommand<SetLeftHandWeapon>().setKey(Keys.D1));
-            buttons.Add(new Button().setCommand<SetRightHandWeapon>().setKey(Keys.D2));
+            buttons.Add(new Button().setCommand<UsePotion>().setKey(Keys.D3));
             buttons.Add(new Button().setCommand<PlayerHUD>().setKey(Keys.LeftShift));
 
             /*buttons.Add(new Button().setCommand<StepFront>().setKey(Keys.Up));
@@ -32,6 +30,15 @@ namespace TwoD00m.Control
             buttons.Add(new Button().setCommand<TurnLeft>().setKey(Keys.PageUp));
             buttons.Add(new Button().setCommand<TurnRight>().setKey(Keys.PageDown));*/
 
+        }
+
+        public InputHandler(int inventoryIsOpen)
+        {
+            buttons.Add(new Button().setCommand<SetPotion>().setKey(Keys.D3));
+            buttons.Add(new Button().setCommand<SetLeftHandWeapon>().setKey(Keys.D1));
+            buttons.Add(new Button().setCommand<SetRightHandWeapon>().setKey(Keys.D2));
+            buttons.Add(new Button().setCommand<GetLeftElement>().setKey(Keys.A));
+            buttons.Add(new Button().setCommand<GetRightElement>().setKey(Keys.D));
         }
 
         public Command handleInput()

@@ -1,0 +1,23 @@
+﻿[
+	{
+		Damage:3		
+		Durability:10
+		Name:"credit card knife"		
+		Description:"Слабое оружие ближнего боя"
+		Type:MeleeWeapon
+	}	
+	{
+		Damage:15		
+		Durability:10
+		Name:"the bow of Hercules"		
+		Description:"сильное оружие дальнего боя"
+		Type:RangeWeapon
+	}	
+	{
+		Damage:12		
+		Durability:14
+		Name:"BLIN"		
+		Description:"Сильное оружие ближнего боя"
+		Type:MeleeWeapon
+	}	
+]

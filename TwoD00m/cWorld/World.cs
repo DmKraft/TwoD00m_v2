@@ -9,42 +9,29 @@ namespace TwoD00m
 {
     public class World
     {
-        Dictionary<Point, Block> world;
-        GameKit<GameModel> modelsKit;
+        private Dictionary<Point, Block> world = new Dictionary<Point, Block>();
 
-        public World(string[] blocksInfo)
-        {
-            world = new Dictionary<Point, Block>();
-            modelsKit = Loader.LoadKit<GameModel>(@".\cWorld\Models.csv");
-            foreach (var blockInfo in blocksInfo)
-            {
-                Block block = new Block();
-                string[] info = blockInfo.Replace("{", "").Replace("}", "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                Point position = new Point(Convert.ToInt32(info[0]), Convert.ToInt32(info[1]));
-                string[] modelsInfo = new string[info.Length - 2];
-                Array.Copy(info, 2, modelsInfo, 0, modelsInfo.Length);
-                for(int i = 0; i < modelsInfo.Length; i +=2 )
-                {
-                    GameModel m = modelsKit.GetKit().Where(model => model.AbbName == modelsInfo[i]).ToList()[0];
-                    Direction d = Loader.GetModelDirection(modelsInfo[i + 1]);
-                    block.AddModel(m, d);
-                }
-                world.Add(position, block);
-            }
-        }
+        public World() { }
         
-        public void addBlock(int x, int y, ref Block block)
+        public void AddBlock(int x, int y, Block block)
         {
             if (!world.ContainsKey(new Point(x, y)))
                 world.Add(new Point(x, y), block);
         }
-        public void deletBlock(int x, int y)
+
+        public void AddBlock(Point position, Block block)
+        {
+            if (!world.ContainsKey(position))
+                world.Add(position, block);
+        }
+
+        public void DeleteBlock(int x, int y)
         {
             if (world.ContainsKey(new Point(x, y)))
                 world.Remove(new Point(x, y));
         }
 
-        public Block getBlock(int x, int y)
+        public Block GetBlock(int x, int y)
         {
             if (world.ContainsKey(new Point(x, y)))
                 return world[new Point(x, y)];
@@ -52,7 +39,7 @@ namespace TwoD00m
                 return null;
 
         }
-        public Block getBlock(Point point)
+        public Block GetBlock(Point point)
         {
             if (world.ContainsKey(point))
                 return world[point];
@@ -71,6 +58,7 @@ namespace TwoD00m
         }
         public void WorldUpdate(Point position)
         {
+            world[position].InvertPassThrough();
         }
 
     }

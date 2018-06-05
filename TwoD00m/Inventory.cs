@@ -14,14 +14,11 @@ namespace TwoD00m
         public static List<Weapon> weapons;
         public List<Potion> potions;
 
-        public Inventory()
-        {
-            weapons = GameItems.SetWeapon();
-        }
+        
         public void StartInventory()
         {
             weapons = new List<Weapon>();
-            weapons.Add(GameItems.weapon[0]);
+            weapons.Add(GameItems.weapon.GetObject(0));
             potions = new List<Potion>();
             potions.Add(new Potion());
         }

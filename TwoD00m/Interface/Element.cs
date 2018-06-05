@@ -95,4 +95,12 @@ namespace TwoD00m.Interface
             components.Add(new FillingCell("FillingHorizontalScalse/" + name + "_2", new Vector2(4, 2), position, ref value));
         }
     }
+
+    public class MiniMap : Element
+    {
+        public MiniMap(String name, Vector2 position, ref SurvivalPoint value) : base(name, position)
+        {
+            //components.Add();
+        }
+    }
 }

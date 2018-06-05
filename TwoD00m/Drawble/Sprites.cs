@@ -5,15 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TwoD00m.Drawble
 {
     public static class Sprites
     {
-        private
-            static ContentManager Content_;
-        static SpriteBatch spriteBatch_;
+        private static ContentManager content;
+        private static SpriteBatch spriteBatch;
 
         private static
             int field3DHeight = 666;
@@ -24,31 +24,29 @@ namespace TwoD00m.Drawble
             float posX = 12;
         private static
             float posY = 42;
-
-        private static
-            int overviewAhead = 5;
+        
         private static
             int overviewSide  = 5 / 2;
 
-        public static void setContent(ContentManager Content) { Content_ = Content; }
+        public static void setContent(ContentManager Content) { content = Content; }
         public static Texture2D LoadTexture(String name)
         {
             try
             {
-                return Content_.Load<Texture2D>(name);
+                return content.Load<Texture2D>(name);
             }
             catch { return null; }
         }
 
-        public static void setSpriteBatch(SpriteBatch spriteBach) { spriteBatch_ = spriteBach; }
-        public static SpriteBatch getSpriteBach() { return spriteBatch_; }
+        public static void setSpriteBatch(SpriteBatch spriteBach) { spriteBatch = spriteBach; }
+        public static SpriteBatch getSpriteBach() { return spriteBatch; }
         public static void Draw2D(Texture2D texure, Vector2 point, Rectangle rectangle, Color color)
         {
-            spriteBatch_.Draw(texure, point, rectangle, color);
+            spriteBatch.Draw(texure, point, rectangle, color);
         }
         public static void DrawBlock(Texture2D texture, int x, int y)
         {
-            spriteBatch_.Draw(texture, getPosition(x) , getRectangle(x,y), Color.White);
+            spriteBatch.Draw(texture, getPosition(x) , getRectangle(x,y), Color.White);
         }
 
         private static Rectangle getRectangle(int x, int y)
